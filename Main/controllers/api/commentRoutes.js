@@ -3,6 +3,7 @@ const withAuth = require('../../utils/auth');
 const { Comment } = require('../../models');
 
 router.get('/', (req, res) => {
+    Comment.findall()
     .then(dbCommentData  => res.json(dbCommentData))
     .catch(err => {
         console.log(err);

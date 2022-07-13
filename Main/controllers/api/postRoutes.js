@@ -1,38 +1,145 @@
 const router = require('express').Router();
-const { Project } = require('../../models');
+const { Post, User, Comment } = require('../../models');
 const withAuth = require('../../utils/auth');
 
-router.post('/', withAuth, async (req, res) => {
-  try {
-    const newProject = await Project.create({
-      ...req.body,
-      user_id: req.session.user_id,
-    });
+// GET /api/posts
+router.get('/', (req, res) => {
+  console.log('======================');
+  Post.findAll({
+      order: [['created_at', 'DESC']], 
+      attributes: [
+          'id',
+          'post_url', 
+          'title', 
+          'created_at'
+      ],
+      include: [
+          {
+              model: Comment,
+              attributes: [
+                  'id',
+                  'comment_text',
+                  'post_id',
+                  'user_id',
+                  'created_at'
+              ],
+              include: {
+                  model: User,
+                  attributes: ['username']
+              }
+          },
+          {
+          model: User,
+          attributes: ['username']
+          }
+      ]
+  })
+      .then(dbPostData => res.json(dbPostData))
+      .catch(err => {
+      console.log(err);
+      res.status(500).json(err);
+      });
+})
 
-    res.status(200).json(newProject);
-  } catch (err) {
-    res.status(400).json(err);
-  }
-});
-
-router.delete('/:id', withAuth, async (req, res) => {
-  try {
-    const projectData = await Project.destroy({
+// GET /api/posts/1
+router.get('/:id', (req, res) => {
+  Post.findOne({
       where: {
-        id: req.params.id,
-        user_id: req.session.user_id,
+          id: req.params.id
       },
-    });
+      attributes: ['id', 'post_url', 'title', 'created_at'],
+      include: [
+          {
+              model: Comment,
+              attributes: [
+                  'id',
+                  'comment_text',
+                  'post_id',
+                  'user_id',
+                  'created_at'
+              ],
+              include: {
+                  model: User,
+                  attributes: ['username']
+              }
+          },
+          {
+          model: User,
+          attributes: ['username']
+          }
+      ]
+      })
+      .then(dbPostData => {
+          if (!dbPostData) {
+              res.status(404).json({ message: 'No post found with this id' });
+              return;
+          }
+          res.json(dbPostData);
+      })
+      .catch(err => {
+          console.log(err);
+          res.status(500).json(err);
+      });
+})
 
-    if (!projectData) {
-      res.status(404).json({ message: 'No project found with this id!' });
-      return;
-    }
 
-    res.status(200).json(projectData);
-  } catch (err) {
-    res.status(500).json(err);
-  }
+// POST /api/posts
+router.post('/', withAuth, (req, res) => {
+  Post.create({
+      title: req.body.title,
+      post_url: req.body.post_url,
+      user_id: req.session.user_id
+      })
+      .then(dbPostData => res.json(dbPostData))
+      .catch(err => {
+          console.log(err);
+          res.status(500).json(err);
+      });
+})
+
+// PUT /api/posts/1
+router.put('/:id', withAuth, (req, res) => {
+  Post.update(
+      {
+          title: req.body.title
+      },
+      {
+          where: {
+              id: req.params.id
+          }
+      }
+      
+  )
+  .then(dbPostData => {
+      if (!dbPostData[0]) {
+        res.status(404).json({ message: 'No post found with this id' });
+        return;
+      }
+      res.json(dbPostData);
+  })
+  .catch(err => {
+      console.log(err);
+      res.status(500).json(err);
+  });
+});
+// DELETE /api/posts/1
+router.delete('/:id', withAuth, (req, res) => {
+  Post.destroy({
+      where: {
+          id: req.params.id
+      }
+  })
+      .then(dbPostData => {
+          if (!dbPostData) {
+              res.status(404).json({ message: 'No post found with this id' });
+              return;
+          }
+          res.json(dbPostData);
+      })
+      .catch(err => {
+          console.log(err);
+          res.status(500).json(err);
+      });
 });
 
 module.exports = router;
