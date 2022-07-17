@@ -1,15 +1,18 @@
-const Sequelize = require('sequelize');
+const router = require("express").Router();
+const { Post, Comment, User } = require("../models/index");
 
-//allow for use of .env data
-require('dotenv').config();
+router.get("/", (req, res) => {
+  Post.findAll({
+    include: [User],
+  })
+    .then((dbPostData) => {
+      const posts = dbPostData.map((post) => post.get({ plain: true }));
 
-// create connection to db, whether local on on heroku using jawsdb
-const sequelize = process.env.JAWSDB_URL
-  ? new Sequelize(process.env.JAWSDB_URL)
-  : new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, process.env.DB_PW, {
-    host: 'localhost',
-    dialect: 'mysql',
-    port: 3306
-  });
+      res.render("all-posts", { posts });
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
+});
 
-module.exports = sequelize;
+module.exports = router;
