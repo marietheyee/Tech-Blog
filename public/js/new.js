@@ -17,7 +17,7 @@ const newFormHandler = async function(event) {
       }
     });
   
-    document.location.replace("/dashboard");
+    // document.location.replace("/dashboard");
   };
   
   document

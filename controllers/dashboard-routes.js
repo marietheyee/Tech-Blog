@@ -7,12 +7,19 @@ router.get("/", (req, res) => {
   })
     .then((dbPostData) => {
       const posts = dbPostData.map((post) => post.get({ plain: true }));
-
-      res.render("all-posts", { posts });
+      console.log(posts)
+      res.render("all-posts", { layout: "dashboard", posts });
     })
     .catch((err) => {
       res.status(500).json(err);
     });
 });
-
+router.get("/new", (req, res) => {
+  try{
+    res.render("new-post");
+  }
+  catch(err) {
+        res.status(500).json(err);
+      };
+    })
 module.exports = router;
