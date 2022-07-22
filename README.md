@@ -10,7 +10,7 @@ New users can sign up on the homepage of Tech Blog by creating a user name and p
 
 # Screenshot
 
-image.png
+
 
 # Technologies Used
 
